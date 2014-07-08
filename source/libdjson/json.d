@@ -127,7 +127,7 @@ class JSONError : Exception {
 /// This is the interface implemented by all classes that represent JSON objects.
 abstract class JSONType {
 	override abstract string toString();
-	abstract string toPrettyString(string indent=null);
+	abstract string toPrettyString(string indent="    ", string parentIndent=null);
 	/// The parse method of this interface should ALWAYS be destructive, removing things from the front of source as it parses.
 	abstract void parse(ref string source);
 	/// Convenience function for casting to JSONObject
@@ -263,7 +263,7 @@ class JSONObject:JSONType {
 	}
 
 	/// A method to convert this JSONObject to a user-readable format.
-	/// Returns: A JSON string representing this object and it's contents.
+	/// Returns: A JSON string representing this object and its contents.
 	override string toString() {
 		string ret;
 		ret ~= "{";
@@ -277,16 +277,17 @@ class JSONObject:JSONType {
 	}
 
 	/// A method to convert this JSONObject to a formatted, user-readable format.
-	/// Returns: A JSON string representing this object and it's contents.
-	override string toPrettyString(string indent=null) {
+	/// Returns: A JSON string representing this object and its contents.
+	override string toPrettyString(string indent="    ", string parentIndent=null) {
 		string ret;
 		ret ~= "{\n";
 		foreach (key,val;_children) {
-			ret ~= indent~"	\""~JSONEncode(key)~"\":"~val.toPrettyString(indent~"	")~",\n";
+			ret ~= parentIndent~indent~"\""~JSONEncode(key)~"\": "~val.toPrettyString(indent, parentIndent~indent)~",\n";
 		}
 		// rip off the trailing comma, we don't need it
 		if (_children.length) ret = ret[0..$-2]~"\n";
-		ret ~= indent~"}";
+
+		ret ~= parentIndent ~ "}";
 		return ret;
 	}
 
@@ -412,7 +413,7 @@ class JSONArray:JSONType {
 	}
 
 	/// A method to convert this JSONArray to a user-readable format.
-	/// Returns: A JSON string representing this object and it's contents.
+	/// Returns: A JSON string representing this object and its contents.
 	override string toString() {
 		string ret;
 		ret ~= "[";
@@ -426,16 +427,16 @@ class JSONArray:JSONType {
 	}
 
 	/// A method to convert this JSONArray to a formatted, user-readable format.
-	/// Returns: A JSON string representing this object and it's contents.
-	override string toPrettyString(string indent=null) {
+	/// Returns: A JSON string representing this object and its contents.
+	override string toPrettyString(string indent="    ", string parentIndent = null) {
 		string ret;
 		ret ~= "[\n";
 		foreach (val;_children) {
-			ret ~= indent~"	"~val.toPrettyString(indent~"	")~",\n";
+			ret ~= parentIndent~indent~val.toPrettyString(indent, parentIndent~indent)~",\n";
 		}
 		// rip off the trailing comma, we don't need it
 		if (_children.length) ret = ret[0..$-2]~"\n";
-		ret ~= indent~"]";
+		ret ~= parentIndent~"]";
 		return ret;
 	}
 
@@ -473,14 +474,14 @@ class JSONString:JSONType {
 	string get() {return JSONDecode(_data);}
 
 	/// A method to convert this JSONString to a user-readable format.
-	/// Returns: A JSON string representing this object and it's contents.
+	/// Returns: A JSON string representing this object and its contents.
 	override string toString() {
 		return "\""~_data~"\"";
 	}
 
 	/// A method to convert this JSONString to a formatted, user-readable format.
-	/// Returns: A JSON string representing this object and it's contents.
-	override string toPrettyString(string indent=null) {
+	/// Returns: A JSON string representing this object and its contents.
+	override string toPrettyString(string indent="    ", string parentIndent=null) {
 		return toString;
 	}
 
@@ -532,15 +533,15 @@ class JSONBoolean:JSONType {
 	protected bool _data;
 
 	/// A method to convert this JSONBoolean to a user-readable format.
-	/// Returns: A JSON string representing this object and it's contents.
+	/// Returns: A JSON string representing this object and its contents.
 	override string toString() {
 		if (_data) return "true";
 		return "false";
 	}
 
 	/// A method to convert this JSONBoolean to a formatted, user-readable format.
-	/// Returns: A JSON string representing this object and it's contents.
-	override string toPrettyString(string indent=null) {
+	/// Returns: A JSON string representing this object and its contents.
+	override string toPrettyString(string indent="    ", string parentIndent=null) {
 		return toString;
 	}
 
@@ -569,7 +570,7 @@ class JSONNull:JSONType {
 
 	/// A method to convert this JSONNull to a formatted, user-readable format.
 	/// Returns: "null". Always. Forever.
-	override string toPrettyString(string indent=null) {
+	override string toPrettyString(string indent="    ", string parentIndent=null) {
 		return toString;
 	}
 
@@ -605,7 +606,7 @@ class JSONNumber:JSONType {
 
 	/// A method to convert this JSONNumber to a formatted, user-readable format.
 	/// Returns: A JSON string representing this number.
-	override string toPrettyString(string indent=null) {
+	override string toPrettyString(string indent="    ", string parentIndent=null) {
 		return toString;
 	}
 
